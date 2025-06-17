@@ -1,26 +1,28 @@
 "use client";
-import { Typography, Form, Input, Button, message } from "antd";
-const { Title } = Typography;
-
+import { useState } from "react";
+import { Card, CardContent, Typography, TextField, Button, Alert, Stack } from "@mui/material";
 export default function SettingsPage() {
-  const onFinish = (values: Record<string, string>) => {
-    console.log("Change password values:", values);
-    message.success("Đổi mật khẩu thành công (giả lập)");
+  const [success, setSuccess] = useState(false);
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSuccess(true);
+    setTimeout(() => setSuccess(false), 2000);
   };
   return (
-    <div style={{ padding: 24, minHeight: 360, background: "#fff" }}>
-      <Title level={3}>Cài đặt</Title>
-      <Form layout="vertical" onFinish={onFinish} style={{ maxWidth: 400 }}>
-        <Form.Item name="oldPassword" label="Mật khẩu cũ" rules={[{ required: true, message: "Vui lòng nhập mật khẩu cũ" }]}> 
-          <Input.Password />
-        </Form.Item>
-        <Form.Item name="newPassword" label="Mật khẩu mới" rules={[{ required: true, message: "Vui lòng nhập mật khẩu mới" }]}> 
-          <Input.Password />
-        </Form.Item>
-        <Form.Item>
-          <Button type="primary" htmlType="submit">Đổi mật khẩu</Button>
-        </Form.Item>
-      </Form>
-    </div>
+    <Card elevation={2} sx={{ maxWidth: 400 }}>
+      <CardContent>
+        <Typography variant="h5" component="div" gutterBottom>
+          Cài đặt
+        </Typography>
+        <form onSubmit={handleSubmit}>
+          <Stack spacing={2}>
+            <TextField label="Mật khẩu cũ" type="password" required fullWidth />
+            <TextField label="Mật khẩu mới" type="password" required fullWidth />
+            <Button type="submit" variant="contained" fullWidth>Đổi mật khẩu</Button>
+            {success && <Alert severity="success">Đổi mật khẩu thành công (giả lập)</Alert>}
+          </Stack>
+        </form>
+      </CardContent>
+    </Card>
   );
 } 

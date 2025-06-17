@@ -1,12 +1,16 @@
 "use client";
-import { Typography } from "antd";
-const { Title } = Typography;
-
+import { Card, CardContent, Typography } from "@mui/material";
 export default function DashboardPage() {
   return (
-    <div style={{ padding: 24, minHeight: 360, background: "#fff" }}>
-      <Title level={3}>Dashboard</Title>
-      <p>Đây là trang tổng quan CMS.</p>
-    </div>
+    <Card elevation={2}>
+      <CardContent>
+        <Typography variant="h5" component="div" gutterBottom>
+          Dashboard
+        </Typography>
+        <Typography color="text.secondary">
+          Đây là trang tổng quan CMS (Material UI).
+        </Typography>
+      </CardContent>
+    </Card>
   );
 }
