@@ -2,7 +2,7 @@
 import { ConfigProvider, Layout, Menu, Button } from "antd";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 const { Header, Content, Footer, Sider } = Layout;
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
@@ -12,9 +12,15 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   else if (pathname.startsWith("/settings")) selectedKey = "3";
 
   const [loggedIn, setLoggedIn] = useState(true);
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem("loggedIn") === "true";
+    setLoggedIn(isLoggedIn);
+  }, [pathname]);
+
   const router = useRouter();
   const handleLogout = () => {
     setLoggedIn(false);
+    localStorage.setItem("loggedIn", "false");
     router.push("/login");
   };
 

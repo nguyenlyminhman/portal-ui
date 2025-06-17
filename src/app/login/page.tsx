@@ -13,6 +13,7 @@ export default function LoginPage() {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
+      localStorage.setItem("loggedIn", "true");
       message.success("Đăng nhập thành công!");
       router.push("/");
     }, 1000);
