@@ -3,7 +3,23 @@ import React, { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
-  AppBar, Toolbar, IconButton, Typography, Drawer, List, ListItem, ListItemIcon, ListItemText, Box, Button, Divider, CssBaseline, ThemeProvider, createTheme, ListItemButton
+  AppBar,
+  Toolbar,
+  IconButton,
+  Typography,
+  Drawer,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Box,
+  Button,
+  Divider,
+  CssBaseline,
+  ThemeProvider,
+  createTheme,
+  ListItemButton,
+  Tooltip
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import DashboardIcon from "@mui/icons-material/Dashboard";
@@ -14,6 +30,7 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 const drawerWidth = 240;
+const miniDrawerWidth = 56;
 
 const theme = createTheme({
   palette: {
@@ -76,15 +93,17 @@ export default function CMSLayout({ children }: { children: React.ReactNode }) {
         {menuItems.map((item) => (
           <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
             <Link href={item.href} passHref legacyBehavior>
-              <ListItemButton
-                component="a"
-                selected={pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))}
-                onClick={() => setMobileOpen(false)}
-                sx={{ justifyContent: desktopOpen ? "flex-start" : "center", px: 2 }}
-              >
-                <ListItemIcon sx={{ minWidth: 0, mr: desktopOpen ? 2 : "auto", justifyContent: "center" }}>{item.icon}</ListItemIcon>
-                {desktopOpen && <ListItemText primary={item.text} />}
-              </ListItemButton>
+              <Tooltip title={!desktopOpen ? item.text : ""} placement="right" arrow>
+                <ListItemButton
+                  component="a"
+                  selected={pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))}
+                  onClick={() => setMobileOpen(false)}
+                  sx={{ justifyContent: desktopOpen ? "flex-start" : "center", px: 2, minHeight: 48 }}
+                >
+                  <ListItemIcon sx={{ minWidth: 0, mr: desktopOpen ? 2 : "auto", justifyContent: "center" }}>{item.icon}</ListItemIcon>
+                  {desktopOpen && <ListItemText primary={item.text} />}
+                </ListItemButton>
+              </Tooltip>
             </Link>
           </ListItem>
         ))}
@@ -92,10 +111,12 @@ export default function CMSLayout({ children }: { children: React.ReactNode }) {
       <Divider />
       <List>
         <ListItem disablePadding sx={{ display: 'block' }}>
-          <ListItemButton onClick={handleLogout} sx={{ justifyContent: desktopOpen ? "flex-start" : "center", px: 2 }}>
-            <ListItemIcon sx={{ minWidth: 0, mr: desktopOpen ? 2 : "auto", justifyContent: "center" }}><LogoutIcon color="error" /></ListItemIcon>
-            {desktopOpen && <ListItemText primary="Đăng xuất" primaryTypographyProps={{ color: "error" }} />}
-          </ListItemButton>
+          <Tooltip title={!desktopOpen ? "Đăng xuất" : ""} placement="right" arrow>
+            <ListItemButton onClick={handleLogout} sx={{ justifyContent: desktopOpen ? "flex-start" : "center", px: 2, minHeight: 48 }}>
+              <ListItemIcon sx={{ minWidth: 0, mr: desktopOpen ? 2 : "auto", justifyContent: "center" }}><LogoutIcon color="error" /></ListItemIcon>
+              {desktopOpen && <ListItemText primary="Đăng xuất" primaryTypographyProps={{ color: "error" }} />}
+            </ListItemButton>
+          </Tooltip>
         </ListItem>
       </List>
     </div>
@@ -105,7 +126,20 @@ export default function CMSLayout({ children }: { children: React.ReactNode }) {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box sx={{ display: "flex" }}>
-        <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+        <AppBar
+          position="fixed"
+          color="primary"
+          sx={{
+            zIndex: (theme) => theme.zIndex.drawer + 1,
+            transition: (theme) =>
+              theme.transitions.create(["width", "margin"], {
+                easing: theme.transitions.easing.sharp,
+                duration: theme.transitions.duration.leavingScreen,
+              }),
+            ml: { lg: desktopOpen ? `${drawerWidth}px` : `${miniDrawerWidth}px` },
+            width: { lg: `calc(100% - ${desktopOpen ? drawerWidth : miniDrawerWidth}px)` },
+          }}
+        >
           <Toolbar>
             {!desktopOpen && (
               <IconButton
@@ -135,6 +169,7 @@ export default function CMSLayout({ children }: { children: React.ReactNode }) {
             </Button>
           </Toolbar>
         </AppBar>
+        {/* Drawer cho mobile */}
         <Drawer
           variant="temporary"
           open={mobileOpen}
@@ -147,17 +182,28 @@ export default function CMSLayout({ children }: { children: React.ReactNode }) {
         >
           {drawer}
         </Drawer>
+        {/* Mini variant Drawer cho desktop */}
         <Drawer
-          variant="persistent"
+          variant="permanent"
           open={desktopOpen}
           sx={{
             display: { xs: "none", lg: "block" },
-            width: drawerWidth,
+            width: desktopOpen ? drawerWidth : miniDrawerWidth,
             flexShrink: 0,
+            whiteSpace: 'nowrap',
+            boxSizing: 'border-box',
+            transition: (theme) => theme.transitions.create('width', {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.enteringScreen,
+            }),
             '& .MuiDrawer-paper': {
-              width: drawerWidth,
+              width: desktopOpen ? drawerWidth : miniDrawerWidth,
               boxSizing: 'border-box',
-              transition: 'width 0.3s',
+              overflowX: 'hidden',
+              transition: (theme) => theme.transitions.create('width', {
+                easing: theme.transitions.easing.sharp,
+                duration: theme.transitions.duration.enteringScreen,
+              }),
             },
           }}
         >
@@ -168,7 +214,14 @@ export default function CMSLayout({ children }: { children: React.ReactNode }) {
           p: 0,
           minHeight: "100vh",
           bgcolor: "background.default",
-          transition: 'margin-left 0.3s',
+          ml: { xs: 0, lg: desktopOpen ? `${drawerWidth}px` : `${miniDrawerWidth}px` },
+          maxWidth: { xl: '1200px', lg: '100vw' },
+          mx: { xl: 'auto', lg: 0 },
+          transition: (theme) =>
+            theme.transitions.create(['margin-left', 'margin'], {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.enteringScreen,
+            }),
         }}>
           <Toolbar />
           {children}
