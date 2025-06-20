@@ -19,7 +19,8 @@ import {
   ThemeProvider,
   createTheme,
   ListItemButton,
-  Tooltip
+  Tooltip,
+  Collapse
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import DashboardIcon from "@mui/icons-material/Dashboard";
@@ -28,6 +29,8 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import LogoutIcon from "@mui/icons-material/Logout";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import ExpandLess from "@mui/icons-material/ExpandLess";
+import ExpandMore from "@mui/icons-material/ExpandMore";
 
 const drawerWidth = 240;
 const miniDrawerWidth = 56;
@@ -42,7 +45,21 @@ const theme = createTheme({
 
 const menuItems = [
   { text: "Dashboard", icon: <DashboardIcon />, href: "/" },
-  { text: "Quản lý người dùng", icon: <PeopleIcon />, href: "/users" },
+  {
+    text: "Quản lý người dùng",
+    icon: <PeopleIcon />,
+    children: [
+      { text: "Danh sách", href: "/users" },
+      { text: "Thêm mới", href: "/users/add" },
+      {
+        text: "Phân quyền",
+        children: [
+          { text: "Theo nhóm", href: "/users/roles/group" },
+          { text: "Theo cá nhân", href: "/users/roles/user" },
+        ],
+      },
+    ],
+  },
   { text: "Cài đặt", icon: <SettingsIcon />, href: "/settings" },
 ];
 
@@ -54,9 +71,13 @@ export default function CMSLayout({ children }: { children: React.ReactNode }) {
   const [loggedIn, setLoggedIn] = useState(
     typeof window !== "undefined" ? localStorage.getItem("loggedIn") === "true" : true
   );
+  const [openUser, setOpenUser] = useState(true);
+  const [openRole, setOpenRole] = useState(false);
 
   React.useEffect(() => {
     setLoggedIn(localStorage.getItem("loggedIn") === "true");
+    setOpenUser(pathname.startsWith("/users"));
+    setOpenRole(pathname.startsWith("/users/roles"));
   }, [pathname]);
 
   const handleDrawerToggle = () => {
@@ -76,6 +97,72 @@ export default function CMSLayout({ children }: { children: React.ReactNode }) {
   if (pathname === "/login") return <>{children}</>;
   if (!loggedIn) return null;
 
+  const renderMenu = (items, level = 0) => (
+    <List component="div" disablePadding>
+      {items.map((item) => {
+        if (item.children) {
+          const isUser = item.text === "Quản lý người dùng";
+          const isRole = item.text === "Phân quyền";
+          const open = isUser ? openUser : isRole ? openRole : false;
+          const handleClick = isUser
+            ? () => setOpenUser((prev) => !prev)
+            : isRole
+            ? (e) => {
+                e.stopPropagation();
+                setOpenRole((prev) => !prev);
+              }
+            : undefined;
+          return (
+            <React.Fragment key={item.text}>
+              <ListItemButton
+                onClick={handleClick}
+                sx={{
+                  pl: 2 + level * 2,
+                  justifyContent: desktopOpen ? "flex-start" : "center",
+                  minHeight: 48,
+                }}
+              >
+                {item.icon && (
+                  <ListItemIcon sx={{ minWidth: 0, mr: desktopOpen ? 2 : "auto", justifyContent: "center" }}>{item.icon}</ListItemIcon>
+                )}
+                {desktopOpen && <ListItemText primary={item.text} />}
+                {desktopOpen && (open ? <ExpandLess /> : <ExpandMore />)}
+              </ListItemButton>
+              <Collapse in={open} timeout="auto" unmountOnExit>
+                {renderMenu(item.children, level + 1)}
+              </Collapse>
+            </React.Fragment>
+          );
+        }
+        return (
+          <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
+            <span onClick={e => {
+              e.stopPropagation();
+              if (level === 2) setOpenRole(true);
+              if (level === 1) setOpenUser(true);
+            }}>
+              <Link href={item.href} passHref legacyBehavior>
+                <Tooltip title={!desktopOpen ? item.text : ""} placement="right" arrow>
+                  <ListItemButton
+                    component="a"
+                    selected={pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))}
+                    onClick={() => setMobileOpen(false)}
+                    sx={{ justifyContent: desktopOpen ? "flex-start" : "center", pl: 2 + level * 2, minHeight: 44 }}
+                  >
+                    {item.icon && (
+                      <ListItemIcon sx={{ minWidth: 0, mr: desktopOpen ? 2 : "auto", justifyContent: "center" }}>{item.icon}</ListItemIcon>
+                    )}
+                    {desktopOpen && <ListItemText primary={item.text} />}
+                  </ListItemButton>
+                </Tooltip>
+              </Link>
+            </span>
+          </ListItem>
+        );
+      })}
+    </List>
+  );
+
   const drawer = (
     <div>
       <Toolbar sx={{ justifyContent: desktopOpen ? "space-between" : "center", px: 1 }}>
@@ -89,25 +176,7 @@ export default function CMSLayout({ children }: { children: React.ReactNode }) {
         </IconButton>
       </Toolbar>
       <Divider />
-      <List>
-        {menuItems.map((item) => (
-          <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
-            <Link href={item.href} passHref legacyBehavior>
-              <Tooltip title={!desktopOpen ? item.text : ""} placement="right" arrow>
-                <ListItemButton
-                  component="a"
-                  selected={pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))}
-                  onClick={() => setMobileOpen(false)}
-                  sx={{ justifyContent: desktopOpen ? "flex-start" : "center", px: 2, minHeight: 48 }}
-                >
-                  <ListItemIcon sx={{ minWidth: 0, mr: desktopOpen ? 2 : "auto", justifyContent: "center" }}>{item.icon}</ListItemIcon>
-                  {desktopOpen && <ListItemText primary={item.text} />}
-                </ListItemButton>
-              </Tooltip>
-            </Link>
-          </ListItem>
-        ))}
-      </List>
+      {renderMenu(menuItems)}
       <Divider />
       <List>
         <ListItem disablePadding sx={{ display: 'block' }}>
