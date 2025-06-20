@@ -42,3 +42,11 @@ a {
     color-scheme: dark;
   }
 }
+
+.custom-ant-menu .ant-menu-item-selected {
+  background: #1677ff !important;
+  color: #fff !important;
+}
+.custom-ant-menu .ant-menu-item-selected a {
+  color: #fff !important;
+}

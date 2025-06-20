@@ -9,7 +9,11 @@ const { Header, Content, Footer, Sider } = Layout;
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   let selectedKey = "1";
-  if (pathname.startsWith("/users")) selectedKey = "2";
+  if (pathname === "/users") selectedKey = "2.1";
+  else if (pathname === "/users/add") selectedKey = "2.2";
+  else if (pathname === "/users/roles/group") selectedKey = "2.3.1";
+  else if (pathname === "/users/roles/user") selectedKey = "2.3.2";
+  else if (pathname.startsWith("/users")) selectedKey = "2";
   else if (pathname.startsWith("/settings")) selectedKey = "3";
 
   const [loggedIn, setLoggedIn] = useState(true);
@@ -44,7 +48,23 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   const menuItems = [
     { key: "1", icon: <DashboardOutlined />, label: <Link href="/">Dashboard</Link> },
-    { key: "2", icon: <UserOutlined />, label: <Link href="/users">Quản lý người dùng</Link> },
+    {
+      key: "2",
+      icon: <UserOutlined />,
+      label: "Quản lý người dùng",
+      children: [
+        { key: "2.1", label: <Link href="/users">Danh sách</Link> },
+        { key: "2.2", label: <Link href="/users/add">Thêm mới</Link> },
+        {
+          key: "2.3",
+          label: "Phân quyền",
+          children: [
+            { key: "2.3.1", label: <Link href="/users/roles/group">Theo nhóm</Link> },
+            { key: "2.3.2", label: <Link href="/users/roles/user">Theo cá nhân</Link> },
+          ],
+        },
+      ],
+    },
     { key: "3", icon: <SettingOutlined />, label: <Link href="/settings">Cài đặt</Link> },
   ];
 
@@ -112,6 +132,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                 items={menuItems}
                 style={{ borderRight: 0 }}
                 onClick={() => setCollapsed(false)}
+                inlineIndent={24}
+                className="custom-ant-menu"
               />
             </div>
           )}
